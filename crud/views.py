@@ -1,13 +1,46 @@
+from django.forms import model_to_dict
 from django.shortcuts import render
-from django.http import HttpResponse, HttpRequest
-from .forms import UserForm
+from django.http import HttpResponseRedirect, HttpResponseNotFound
+
+from .forms import PersonForm
+from .models import Person
 
 
-def index(request: HttpRequest) -> HttpResponse:
-    userform = UserForm()
+def index(request):
+    form = PersonForm()
+    people = Person.objects.all()
+    return render(request, 'index.html', {'form': form, 'people': people})
+
+
+def create(request):
     if request.method == 'POST':
-        userform = UserForm(request.POST)
-        if userform.is_valid():
-            name = userform.cleaned_data['name']
-            return HttpResponse(f'<h2>Hello, {name}</h2>')
-    return render(request, 'index.html', {"form": userform})
+        form = PersonForm(request.POST)
+        if form.is_valid():
+            form.save()
+    return HttpResponseRedirect('/')
+
+
+def edit(request, id):
+    try:
+        person = Person.objects.get(id=id)
+    except Person.DoesNotExist:
+        return HttpResponseNotFound('<h2>Person not found</h2>')
+
+    if request.method == 'POST':
+        form = PersonForm(request.POST, instance=person)
+        if form.is_valid():
+            form.save()
+        return HttpResponseRedirect('/')
+    else:
+        form = PersonForm(instance=person)
+        return render(request, 'edit.html', {'form': form})
+
+
+def delete(request, id):
+    try:
+        person = Person.objects.get(id=id)
+    except Person.DoesNotExist:
+        return HttpResponseNotFound('<h2>Person not found</h2>')
+
+    person.delete()
+    return HttpResponseRedirect('/')
