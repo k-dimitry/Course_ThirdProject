@@ -1,4 +1,3 @@
-from django.forms import model_to_dict
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponseNotFound
 
@@ -44,3 +43,6 @@ def delete(request, id):
 
     person.delete()
     return HttpResponseRedirect('/')
+
+
+
